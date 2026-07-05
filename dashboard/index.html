@@ -53,6 +53,7 @@ header{
 }
 /*.logo{display:flex;align-items:center;gap:10px;font-weight:700;font-size:15px;letter-spacing:-.3px;color:var(--text)}*/
 /* ── Brand Logo Sizing & Theme Toggling ── */
+						 														   
 .logo { display: flex; align-items: center; }
 .brand-logo { 
   height: 36px; /* Adjust this to make the logo larger or smaller */
@@ -66,7 +67,7 @@ header{
 /* When Dark Mode is active: Hide Light, Show Dark */
 [data-theme="dark"] .light-logo { display: none; }
 [data-theme="dark"] .dark-logo { display: block; }
-
+  
 /* Tab strip */
 .header-tabs{display:flex;gap:2px;background:var(--surface3);border-radius:var(--radius-sm);padding:3px}
 .tab{
@@ -336,14 +337,13 @@ footer{text-align:center;padding:18px;color:var(--muted);font-size:11px;border-t
 
 
 <header>
-  <div class="logo">
+   <div class="logo">
     <!-- Light Mode Logo -->
     <img src="2123Light.png" alt="Hermes Automation" class="brand-logo light-logo">
     <!-- Dark Mode Logo -->
     <img src="2123Dark.png" alt="Hermes Automation" class="brand-logo dark-logo">
      <div style="font-size: 13px; color: var(--muted); margin-left: 8px; border-left: 1px solid var(--border); padding-left: 12px;">
       Performance Dashboard
-    </div>
   </div>
   <div class="header-tabs">
     <button class="tab active" onclick="showSection('overview')">Overview</button>
@@ -353,6 +353,7 @@ footer{text-align:center;padding:18px;color:var(--muted);font-size:11px;border-t
     <button class="tab" onclick="showSection('ai')">🤖 AI Analysis</button>
   </div>
   <div class="hdr-right">
+    <span style="font-size:11px;font-family:var(--mono);color:var(--muted);padding:3px 8px;background:var(--surface2);border:1px solid var(--border);border-radius:6px" id="live-clock"></span>
     <span class="live-pill"><span class="live-dot"></span><span id="last-updated">Loading…</span></span>
     <button class="theme-pill" onclick="toggleTheme()" id="theme-toggle-btn">
       <span id="theme-label">☀️ Light</span>
@@ -1647,6 +1648,22 @@ document.addEventListener('keydown', e=>{
   }
 });
 
+// ── Live clock ─────────────────────────────────────────────────────────────
+function startClock(){
+  function tick(){
+    const el = document.getElementById('live-clock');
+    if(!el) return;
+    const now = new Date();
+    const pad = n => String(n).padStart(2,'0');
+    const dateStr = now.toISOString().slice(0,10);
+    const timeStr = pad(now.getUTCHours())+':'+pad(now.getUTCMinutes())+':'+pad(now.getUTCSeconds());
+    el.textContent = dateStr+' '+timeStr+' UTC';
+  }
+  tick();
+  setInterval(tick, 1000);
+}
+
+
 // ── Theme toggle ────────────────────────────────────────────────────────────
 function toggleTheme(){
   const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
@@ -1683,7 +1700,8 @@ async function init(){
     await loadAll();
     const latest=allRuns[0];
     document.getElementById('last-updated').textContent=latest
-      ?new Date(latest.timestamp).toISOString().replace('T',' ').slice(0,16)+' UTC':'No data';
+      ?'Latest run: '+new Date(latest.timestamp).toISOString().replace('T',' ').slice(0,16)+' UTC':'No data';
+    startClock();
     const runs=filteredRuns();
     renderKPIs(runs);renderCharts(runs);renderApm();
   }catch(e){console.error(e);}
@@ -1695,7 +1713,7 @@ async function hardRefresh(){
   await loadAll();
   const runs=filteredRuns();renderKPIs(runs);renderCharts(runs);renderApm();
   document.getElementById('last-updated').textContent=
-    allRuns[0]?new Date(allRuns[0].timestamp).toISOString().replace('T',' ').slice(0,16)+' UTC':'No data';
+    allRuns[0]?'Latest run: '+new Date(allRuns[0].timestamp).toISOString().replace('T',' ').slice(0,16)+' UTC':'No data';
 }
 
 init();
